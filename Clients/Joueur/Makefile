@@ -1,7 +1,7 @@
 CC = gcc
 SRC= $(notdir $(wildcard src/*.c))
-FLAGS_E = -lm -fsanitize=address -O3
-FLAGS_C = -fsanitize=address -O3
+FLAGS_E = -lm -fsanitize=address
+FLAGS_C = -fsanitize=address
 
 OBJ= $(SRC:.c=.o)
 

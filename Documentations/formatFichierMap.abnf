@@ -1,0 +1,29 @@
+@@ = nomCarte nombreJoueur points lignes checkpoints emplacementsDepart zoneDArrivee
+
+none = ""
+caractere = "A"/"B"/"C"/"D"/"E"/"F"/"G"/"H"/"I"/"G"/"K"/"L"/"M"/"N"/"O"/"P"/"Q"/"R"/"S"/"T"/"U"/"V"/"W"/"X"/"Y"/"Z"/"a"/"b"/"c"/"d"/"e"/"f"/"g"/"h"/"i"/"j"/"k"/"l"/"m"/"n"/"o"/"p"/"q"/"r"/"s"/"t"/"u"/"v"/"w"/"x"/"y"/"z"/"_"
+chiffre = "0"/"1"/"2"/"3"/"4"/"5"/"6"/"7"/"8"/"9"
+suiteDeCaractere = (caractere/chiffre/none) suiteDeCaractere
+nom = caractere suiteDeCaractere
+nombre = (chiffre/none) nombre
+
+nomCarte = nom "\n"
+nombreJoueur = nombre "\n"
+
+points = "points\n" listePoints
+point = nombre " " nombre "\n"
+listePoints = (point/none) listePoints
+
+lignes = "lignes\n" listeLignes
+ligne = nombre " " nombre "\n"
+listePoints = (ligne/none) listePoints
+
+checkpoints = "checkpoints\n" listeCheckpoints
+checkpoint = nombre " " nombre "\n"
+listeCheckpoints = (checkpoint/none) listeCheckpoints
+
+emplacementsDepart = "emplacements\n" listeEmplacements
+emplacement = nombre " " nombre
+listeEmplacements = (emplacement/none) listeEmplacements
+
+zoneDArrivee = "arrivee " nombre " " nombre
