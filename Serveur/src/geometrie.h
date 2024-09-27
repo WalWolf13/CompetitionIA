@@ -24,10 +24,10 @@
         Point p;
     }ReponsePoint;
 
-    double distancePoint(Point a, Point b);
-    Point projeteOrthogonale(Point a, Ligne bc);
-    bool interRectangleLigne(Rectangle abcd, Ligne pq);
-    Point pointSurRectangleSelonAngle(Rectangle abcd, double angle);
-    ReponsePoint pointIntersectionEntreDemiDroiteEtSegment(DemiDroite ab, Ligne cd);
+    double distance_point(Point a, Point b);
+    Point projete_orthogonale(Point a, Ligne bc);
+    bool intersection_rectangle_ligne(Rectangle abcd, Ligne pq);
+    Point point_sur_rectangle_selon_angle(Rectangle abcd, double angle);
+    ReponsePoint point_intersection_entre_demi_droite_et_degment(DemiDroite ab, Ligne cd);
 
 #endif

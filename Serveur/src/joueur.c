@@ -20,7 +20,7 @@
 int socket_client;
 Voiture *voiture;
 
-void envoiInformation(int signal){
+void envoi_information(int signal){
     for(int i = 0; i < voiture->nbDetecteur; i++){
         uint16_t msg = ((double) voiture->distDetecteur[i])*65535/DISTANCE_MAX_DETECTEUR_VOITURE;
         //if(voiture->distDetecteur[i] >= DISTANCE_MAX_DETECTEUR_VOITURE) msg = 65535;
@@ -28,7 +28,7 @@ void envoiInformation(int signal){
     }
     uint8_t marche = voiture->marche_av_ar;
     uint16_t vitesse = voiture->vitesse*100;
-    uint16_t angleRoue = (voiture->angleRoue*4*32768/pi)+32768;
+    uint16_t angleRoue = (voiture->angleRoue*6*32768/pi)+32768;
     uint8_t msg = 0;
     send(socket_client, &marche, 1, 0);
     send(socket_client, &vitesse, 2, 0);
@@ -126,7 +126,7 @@ void nouveau_joueur(int connect){
     }
 
     voiture = &joueur[id];
-    signal(SIGUSR1, envoiInformation);
+    signal(SIGUSR1, envoi_information);
 
     while(*start != 1){
         usleep(50);
@@ -140,13 +140,15 @@ void nouveau_joueur(int connect){
     while(*start == 1){
         uint8_t msg0 = 0;
         uint16_t msg1 = 0;
-        int8_t msg2 = 0;
+        int16_t msg2;
         recv(connect, &msg0, 1, 0);
         voiture->marche_av_ar = msg0;
-        recv(connect, &msg2, 1, 0);
-        voiture->acceleration = msg2/10.;
+        recv(connect, &msg2, 2, 0);
+        voiture->acceleration = msg2;
+        //printf("accel : %d\n", voiture->acceleration);
         recv(connect, &msg1, 2, 0);
-        voiture->angleRoue = (pi)*((double)(msg1-32768))/32768;
+        voiture->angleRoue = (pi/6)*((double)(msg1-32768))/32768;
+        //printf("Angle roues : %f\n", voiture->angleRoue);
     }
     
 }

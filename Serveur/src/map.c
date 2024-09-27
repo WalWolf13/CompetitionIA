@@ -23,7 +23,7 @@ char *concatene(char *a, char*b){
     return resultat;
 }
 
-int chargeFichierMap(char *fileName){
+int charger_fichier_map(char *fileName){
     char *path = concatene(PATH_FOLDER, fileName);
     FILE *fichier = fopen(path, "r");
     if(fichier == NULL){
@@ -34,7 +34,7 @@ int chargeFichierMap(char *fileName){
     free(path);
     chaineLexical maChaine = lexer(fichier);
     fclose(fichier);
-    resultatGrammaire r = analyseGrammatical(maChaine);
+    resultatGrammaire r = analyse_grammatical(maChaine);
 
     //Ajout des informations recuperer par l'annalyseur grammatical en memoire partage
     key_t cleBase = ftok("informationCarte", 1);
@@ -65,7 +65,7 @@ int chargeFichierMap(char *fileName){
     int shmidArrivee = shmget(cleBaseArrivee, sizeof(Arrivee), IPC_EXCL | IPC_CREAT | 0666);
     Arrivee* ligneDArrivee = shmat(shmidArrivee, NULL, 0666);
 
-    extractionInformationMap(maChaine, r, tabPoints, tabLignes, tabChecks, tabEmpl, ligneDArrivee);
+    extraction_information_map(maChaine, r, tabPoints, tabLignes, tabChecks, tabEmpl, ligneDArrivee);
 
     shmdt(tabPoints);
     shmdt(tabLignes);
@@ -73,7 +73,7 @@ int chargeFichierMap(char *fileName){
     shmdt(tabEmpl);
     shmdt(ligneDArrivee);
     shmdt(inf);
-    freeChaineLexical(maChaine);
+    free_chaineLexical(maChaine);
 
     return 0;
 }

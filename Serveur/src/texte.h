@@ -25,11 +25,11 @@ typedef struct resultatGrammaire{
 }resultatGrammaire;
 
 chaineLexical lexer(FILE* fichier);
-resultatGrammaire analyseGrammatical(chaineLexical chaine);
+resultatGrammaire analyse_grammatical(chaineLexical chaine);
 
-chaineLexical initChaineLexical();
-chaineLexical addChaineLexical(chaineLexical *chaine, objetLexical o, char* texte, int nombre, int ligne);
-void extractionInformationMap(chaineLexical chaine, resultatGrammaire nb, Point* tabPoint, Ligne *tabLigne, Checkpoint *tabCheck, Emplacement* tabEmplacment, Arrivee* ligneDArrivee);
-void freeChaineLexical(chaineLexical chaine);
+chaineLexical init_chaineLexical();
+chaineLexical ajoute_chaineLexical(chaineLexical *chaine, objetLexical o, char* texte, int nombre, int ligne);
+void extraction_information_map(chaineLexical chaine, resultatGrammaire nb, Point* tabPoint, Ligne *tabLigne, Checkpoint *tabCheck, Emplacement* tabEmplacment, Arrivee* ligneDArrivee);
+void free_chaineLexical(chaineLexical chaine);
 
 #endif

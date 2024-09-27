@@ -33,6 +33,6 @@
     }Arrivee;
 
 
-int chargeFichierMap(char *fileName);
+int charger_fichier_map(char *fileName);
 
 #endif

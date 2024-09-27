@@ -9,6 +9,7 @@
 #include "map.h"
 #include "voiture.h"
 #include "geometrie.h"
+#include "physique.h"
 
 #include <signal.h>
 #include <sys/types.h>
@@ -18,20 +19,67 @@
 
 bool running;
 
-#define TPS_ECHANTILLONNAGE 5 //ms
+uint64_t calcule_difference_temps_us(struct timeval tempsDeb_t, struct timeval tempsFin_t){
+    uint64_t delta_t;
+    if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec > 1) delta_t = 2*TPS_ECHANTILLONNAGE*1000;
+        else if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec == 1){
+            if(tempsFin_t.tv_usec<tempsDeb_t.tv_usec){
+                delta_t = tempsDeb_t.tv_usec-tempsFin_t.tv_usec;
+                delta_t = 1000000-delta_t;
+            }
+            else delta_t = 2*TPS_ECHANTILLONNAGE*1000;
+        }
+    else delta_t = tempsFin_t.tv_usec-tempsDeb_t.tv_usec;
+    return delta_t;
+}
 
-void quitSimulation(int sig){
+void quitter_simulation(int sig){
     printf("\nSIMULATION>>Fin !\n");
     running = false;
 }
 
 
+bool verification_checkpoint_voiture(Voiture *v, Checkpoint *listeCheckpoint, uint16_t nbCheckpoint, Arrivee* ligneDArrivee){
+    Rectangle rect_voiture = recupere_point_Voiture_double(v);
+    if(v->numeroDeCheckpoint >= nbCheckpoint){
+        Ligne l;
+        l.a.x = ligneDArrivee->a.x;
+        l.a.y = ligneDArrivee->a.y;
+        l.b.x = ligneDArrivee->b.x;
+        l.b.y = ligneDArrivee->b.y;
+        if(intersection_rectangle_ligne(rect_voiture, l)){
+            //printf("Voiture[%d]>> J'ai fini !\n", v->pid);
+            return true;
+        }
+    }
+    else{
+        Ligne l;
+        l.a.x = listeCheckpoint[v->numeroDeCheckpoint].a.x;
+        l.a.y = listeCheckpoint[v->numeroDeCheckpoint].a.y;
+        l.b.x = listeCheckpoint[v->numeroDeCheckpoint].b.x;
+        l.b.y = listeCheckpoint[v->numeroDeCheckpoint].b.y;
+        if(intersection_rectangle_ligne(rect_voiture, l)){
+            //printf("Voiture[%d]>> Je vient de passer le checkpoint %d\n", v->pid, v->numeroDeCheckpoint);
+            v->numeroDeCheckpoint += 1;
+        }
+    }
+    return false;
+}
+
+void verification_checkpoint(Voiture *v, int nbVoiture, Checkpoint *listeCheckpoint, uint16_t nbCheckpoint, Arrivee* ligneDArrivee, uint64_t nbIteration){
+    for(int i = 0; i < nbVoiture; i++){
+            if(verification_checkpoint_voiture(&v[i], listeCheckpoint, nbCheckpoint, ligneDArrivee)){
+                v[i].fini = true;
+                v[i].x = -1;
+                v[i].y = -1;
+                v[i].tempDeFin = nbIteration;
+                printf("Voiture[%d]>> J'ai fini en %f s\n", v[i].pid, ((double)nbIteration)*0.005 );
+            }
+    }
+}
+
 void jeu(){
     printf("JEU>>Debut de la partie !\n");
-
-
-    signal(SIGINT, quitSimulation);
-
 
     //Recuperation de la memoire partagee
     //Recuperation informations de la carte
@@ -83,10 +131,15 @@ void jeu(){
     }
     printf("Simulation>>Debut !\n");
     
+    signal(SIGINT, quitter_simulation);
 
     //"Simulation"
     running = true;
     uint64_t delta_t = 0;// en us
+    uint64_t nbIteration = 0;
+
+
+    uint64_t delta_t_max = 0;
 
     while(running){
 
@@ -95,58 +148,23 @@ void jeu(){
         gettimeofday(&tempsDeb_t, NULL);
         
         //Application de la physique sur chaque vehicule
-        for(int i = 0; i < *nbJoueur; i++){
-            Voiture temp;
-            temp = joueur[i];
+        avancer_monde(joueur, *nbJoueur, infoMap, tabLignes);
 
-            //Calcule de la trajectoire
-            temp.vitesse = fabs(temp.vitesse + temp.acceleration*TPS_ECHANTILLONNAGE/1000.);
-            temp.omega = temp.omega + temp.angleRoue * temp.vitesse * 20*TPS_ECHANTILLONNAGE/1000.;
-            temp.x += temp.vitesse * cos(temp.omega);
-            temp.y += temp.vitesse * sin(temp.omega);
+        //Verification des passages aux checkpoints
+        verification_checkpoint(joueur, *nbJoueur, tabChecks, infoMap->nbCheckpoints, ligneDArrivee, nbIteration);
 
-            //Calcule des colisions
-            Rectangle voitureGeo;
-            voitureGeo = recupePointVoitureDouble(&temp);
-            bool collision = false;
-            for(int i = 0; i < infoMap->nbLignes && collision == false; i++){
-                if(interRectangleLigne(voitureGeo, tabLignes[i])) collision = true;
-            }
-            if(collision) joueur[i].vitesse = 0;
-            else joueur[i] = temp;
-
-            //Mesure des detecteurs
-            mesureDetecteurs(&joueur[i], tabLignes, infoMap->nbLignes);
-            
-            //Envoi du signal au client
-            kill(joueur[i].pid, SIGUSR1);            
-        }
-        
         //Mise en attente du programme si besoin
         struct timeval tempsFin_t;
         gettimeofday(&tempsFin_t, NULL);
-        if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec > 1) delta_t = 2*TPS_ECHANTILLONNAGE*1000;
-        else if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec == 1){
-            if(tempsFin_t.tv_usec<tempsDeb_t.tv_usec){
-                delta_t = tempsDeb_t.tv_usec-tempsFin_t.tv_usec;
-                delta_t = 1000000-delta_t;
-            }
-            else delta_t = 2*TPS_ECHANTILLONNAGE*1000;
-        }
-        else delta_t = tempsFin_t.tv_usec-tempsDeb_t.tv_usec;
+        delta_t = calcule_difference_temps_us(tempsDeb_t, tempsFin_t);
+        printf("Deltat_t max : %ld µs\n", delta_t_max);
+        if(delta_t > delta_t_max) delta_t_max = delta_t;
         while (delta_t < TPS_ECHANTILLONNAGE*1000){
-            usleep(5);
+            usleep(TPS_ECHANTILLONNAGE);
             gettimeofday(&tempsFin_t, NULL);
-            if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec > 1) delta_t = 2*TPS_ECHANTILLONNAGE*1000;
-            else if(tempsFin_t.tv_sec-tempsDeb_t.tv_sec == 1){
-                if(tempsFin_t.tv_usec<tempsDeb_t.tv_usec){
-                    delta_t = tempsDeb_t.tv_usec-tempsFin_t.tv_usec;
-                    delta_t = 1000000-delta_t;
-                }
-                else delta_t = 2*TPS_ECHANTILLONNAGE*1000;
-            }
-            else delta_t = tempsFin_t.tv_usec-tempsDeb_t.tv_usec;
+            delta_t = calcule_difference_temps_us(tempsDeb_t, tempsFin_t);
         }
+        nbIteration++;
     }
 
     //Liberation des segments de memoire partagee
@@ -160,13 +178,6 @@ void jeu(){
     shmdt(joueur);
     shmdt(nbJoueurMax);
     shmdt(nbJoueur);
-    shmctl(shmidPoint, IPC_RMID, NULL);
-    shmctl(shmidLigne, IPC_RMID, NULL);
-    shmctl(shmidCheck, IPC_RMID, NULL);
-    shmctl(shmidEmpl, IPC_RMID, NULL);
-    shmctl(shmidArrivee, IPC_RMID, NULL);
-    shmctl(shmid, IPC_RMID, NULL);
-
-
+    
     return;
 }

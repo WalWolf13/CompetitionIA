@@ -25,9 +25,17 @@ void controle(msgServeurRec *informationRecu, msgServeurEnv *informationAEnvoyer
     //     printf("\t%d : %f\n", i, convertisseurDetecteur(informationRecu->detecteur[i]));
     // }
 
+    double vitesseConsigne = 1000;// m/s
+    double vitesse = ((double)informationRecu->vitesse) / 100.;
+    //if(convertisseurDetecteur(informationRecu->detecteur[0]) > 19) vitesseConsigne = 3;
 
-    uint16_t vitesseConsigne = 10;// cm/s
-    int16_t accel = (vitesseConsigne - informationRecu->vitesse)/10;
+    double accelF = (vitesseConsigne - vitesse)*750;
+    int16_t accel = 0;
+    if(accelF > 32767) accel = 32767;
+    else if (accelF < -32767) accel = -32767;
+    else accel = accelF;
+    //accel = 32767;
+    printf("vitesse : %f\n", vitesse);
     //int8_t accel = 1;
     // if(compteur >= 5) accel = 0;
     //if(convertisseurDetecteur(informationRecu->detecteur[0])< 3.0) accel = -127;
@@ -35,18 +43,15 @@ void controle(msgServeurRec *informationRecu, msgServeurEnv *informationAEnvoyer
 
     double esp = convertisseurDetecteur(informationRecu->detecteur[1])-convertisseurDetecteur(informationRecu->detecteur[2]);
     if(esp > 0) {
-        informationAEnvoyer->angleRoues = 65535;//49152;
-        printf("Gauche\n");
+        informationAEnvoyer->angleRoues = 0;//49152;
+        //printf("Gauche\n");
     }
     else{
-        informationAEnvoyer->angleRoues = 0;
-        printf("Droite\n");
+        informationAEnvoyer->angleRoues = 65535;
+        //printf("Droite\n");
     } 
     //else informationAEnvoyer->angleRoues = 32768;
-    
-    
 
-    if (accel > 128) accel = 128;
     informationAEnvoyer->acceleration = accel;
     //informationAEnvoyer->angleRoues = 0;//49152;
     informationAEnvoyer->sens = 0;

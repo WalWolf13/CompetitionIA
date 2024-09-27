@@ -102,24 +102,6 @@ void afficheur_communication(int connect){
             uint32_t mem = 0;
             uint16_t mem1 = 0;
             for(int i = 0; i < *nbJoueur; i++){
-                // PointsVoiture *pt = recupePointVoiture(&joueur[i]);
-                // mem = pt->xa;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->ya;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->xb;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->yb;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->xc;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->yc;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->xd;
-                // send(connect, &mem, 4, 0);
-                // mem = pt->yd;
-                // send(connect, &mem, 4, 0);
-                // free(pt);
                 mem = (uint32_t)(joueur[i].x*1000.);
                 send(connect, &mem, 4, 0);
                 mem = (uint32_t)(joueur[i].y*1000.);

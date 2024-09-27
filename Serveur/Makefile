@@ -15,4 +15,4 @@ all : $(OBJ)
 	@echo Terminé !
 
 start :
-	@./exe/prog
+	@./exe/prog 2

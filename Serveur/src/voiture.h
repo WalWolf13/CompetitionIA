@@ -11,6 +11,7 @@
 #define MASSE_VOITURE (double) 750. //kg
 #define ANGLE_AVE (double) atan(LARGEUR_VOITURE/LONGUEUR_VOITURE) //randian
 #define ANGLE_BVE (double) pi-ANGLE_BVE //randian
+#define EMPATTEMENT (double) 3.6 //m
 #define DISTANCE_MAX_DETECTEUR_VOITURE (double) 20.0 //m
 
     typedef enum Voiture_Marche{
@@ -29,7 +30,7 @@
 
         //Dynamique :
         Voiture_Marche marche_av_ar;
-        double acceleration;
+        int16_t acceleration;
         double vitesse;
         double angleRoue;
 
@@ -37,6 +38,11 @@
         int nbDetecteur;
         double detecteur[10];
         double distDetecteur[10];
+
+        //Checkpoint
+        uint16_t numeroDeCheckpoint;
+        bool fini;
+        uint64_t tempDeFin;
 
         
     } Voiture;
@@ -48,10 +54,13 @@
         uint32_t xd, yd;
     } PointsVoiture;
 
-Voiture* initVoiture(double longueur, double largeur, double omega, double x, double y);
-PointsVoiture *recupePointVoiture(Voiture *v);
-Rectangle recupePointVoitureDouble(Voiture *v);
-void  mesureDetecteurs(Voiture *v, Ligne *mur, int nbMur);
-void freeVoiture(Voiture *v);
+Voiture* init_Voiture(double longueur, double largeur, double omega, double x, double y);
+PointsVoiture *recupere_point_Voiture(Voiture *v);
+Rectangle recupere_point_Voiture_double(Voiture *v);
+void  mesure_detecteurs(Voiture *v, Ligne *mur, int nbMur);
+
+void calcule_trajectoire(Voiture *v);
+
+void free_Voiture(Voiture *v);
 
 #endif

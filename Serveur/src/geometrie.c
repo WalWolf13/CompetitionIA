@@ -4,12 +4,12 @@
 
 
 //Calcule la distance entre deux points
-double distancePoint(Point a, Point b){
+double distance_point(Point a, Point b){
     return sqrt((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
 }
 
 //Projet orthogonalement le point A sur la droite (BC)
-Point projeteOrthogonale(Point a, Ligne bc){
+Point projete_orthogonale(Point a, Ligne bc){
     double k = -((bc.b.x - bc.a.x)*(bc.a.x-a.x)+(bc.b.y-bc.a.y)*(bc.a.y-a.y))/((bc.b.x-bc.a.x)*(bc.b.x-bc.a.x)+(bc.b.y-bc.a.y)*(bc.b.y-bc.a.y));
     Point resultat;
     resultat.x = bc.a.x + k*(bc.b.x-bc.a.x);
@@ -18,7 +18,7 @@ Point projeteOrthogonale(Point a, Ligne bc){
 }
 
 //Indique si le point C appartient à la demi droite  [AB)
-bool appartientAUneDemiDroite(Ligne ab, Point c){
+bool appartient_a_une_demi_droite(Ligne ab, Point c){
     double k1 = (c.x-ab.a.x)/(ab.b.x-ab.a.x);
     double k2 = (c.y-ab.a.y)/(ab.b.y-ab.a.y);
     if(fabs(k1-k2) < 0.01 && k1 >= 0) return true;
@@ -26,7 +26,7 @@ bool appartientAUneDemiDroite(Ligne ab, Point c){
 }
 
 //Indique si le point C appartient au segment [AB]
-bool appartientAUnSegment(Ligne ab, Point c){
+bool appartient_a_un_segment(Ligne ab, Point c){
     double k1 = (c.x-ab.a.x)/(ab.b.x-ab.a.x);
     double k2 = (c.y-ab.a.y)/(ab.b.y-ab.a.y);
     if(fabs(k1-k2) < 0.01 && k1 >= 0 && k1 <= 1) return true;
@@ -38,16 +38,16 @@ double angleABC(Point a, Point b, Point c){
     Ligne ba;
     ba.a = b;
     ba.b = a;
-    Point p = projeteOrthogonale(c, ba);
-    double alpha = acos(distancePoint(b, p)/distancePoint(b, c));
-    if(appartientAUneDemiDroite(ba, p)) return alpha;
+    Point p = projete_orthogonale(c, ba);
+    double alpha = acos(distance_point(b, p)/distance_point(b, c));
+    if(appartient_a_une_demi_droite(ba, p)) return alpha;
     return (pi-alpha);
 }
 
 //Calcule la position du point sur les bords du rectangle ABCD à partir de son centre selon l'angle dans le sens trigonométrique 
-Point pointSurRectangleSelonAngle(Rectangle abcd, double angle){
-    double l = distancePoint(abcd.a, abcd.b)/2;
-    double L = distancePoint(abcd.a, abcd.d)/2;
+Point point_sur_rectangle_selon_angle(Rectangle abcd, double angle){
+    double l = distance_point(abcd.a, abcd.b)/2;
+    double L = distance_point(abcd.a, abcd.d)/2;
     double angleAVE = atan(L/l);
     double angleBVE = pi-angleAVE;
     Point p;
@@ -82,7 +82,7 @@ Point pointSurRectangleSelonAngle(Rectangle abcd, double angle){
 }
 
 //Indique et calcule si il existe un point en commun entre la demi droite [AB) et le segment [CD]
-ReponsePoint pointIntersectionEntreDemiDroiteEtSegment(DemiDroite ab, Ligne cd){
+ReponsePoint point_intersection_entre_demi_droite_et_degment(DemiDroite ab, Ligne cd){
     ReponsePoint rep;
     double xBA = ab.b.x - ab.a.x;
     double yCA = cd.a.y - ab.a.y;
@@ -107,7 +107,7 @@ ReponsePoint pointIntersectionEntreDemiDroiteEtSegment(DemiDroite ab, Ligne cd){
 }
 
 //Indique si le point P est à l'interieur ou sur les bords du rectangle [ABCD]
-bool appartientAUnRectangle(Rectangle abcd, Point p){
+bool appartient_a_un_rectangle(Rectangle abcd, Point p){
     double xDA = abcd.d.x-abcd.a.x;
     double yPA = p.y-abcd.a.y;
     double xPA = p.x-abcd.a.x;
@@ -121,7 +121,7 @@ bool appartientAUnRectangle(Rectangle abcd, Point p){
 }
 
 //Retourne vrai si l'intersection entre les deux lignes est non vide
-bool interDeuxLignes(Ligne ab, Ligne cd){
+bool intersection_deux_lignes(Ligne ab, Ligne cd){
     double xBA = ab.b.x - ab.a.x;
     double yCA = cd.a.y - ab.a.y;
     double xCA = cd.a.x - ab.a.x;
@@ -138,13 +138,13 @@ bool interDeuxLignes(Ligne ab, Ligne cd){
 }
 
 //Retourne vrai si l'intersection entre le rectangle et la ligne est non vide
-bool interRectangleLigne(Rectangle abcd, Ligne pq){
+bool intersection_rectangle_ligne(Rectangle abcd, Ligne pq){
     
     //On verifie si on dans le cas où tous les points sont inclus dans le rectangle
     Point r;
     r.x = pq.a.x + 0.5*(pq.b.x-pq.a.x);
     r.y = pq.a.y + 0.5*(pq.b.y-pq.a.y);
-    if(appartientAUnRectangle(abcd, r)) return true;
+    if(appartient_a_un_rectangle(abcd, r)) return true;
     Point c;
     c.x = abcd.d.x + abcd.b.x - abcd.a.x;
     c.y = abcd.d.y + abcd.b.y - abcd.a.y;
@@ -157,5 +157,5 @@ bool interRectangleLigne(Rectangle abcd, Ligne pq){
     cd.b = abcd.d;
     da.a = abcd.d;
     da.b = abcd.a;
-    return interDeuxLignes(ab, pq) || interDeuxLignes(bc, pq) || interDeuxLignes(cd, pq) || interDeuxLignes(da, pq);
+    return intersection_deux_lignes(ab, pq) || intersection_deux_lignes(bc, pq) || intersection_deux_lignes(cd, pq) || intersection_deux_lignes(da, pq);
 }

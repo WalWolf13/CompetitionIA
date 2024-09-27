@@ -8,10 +8,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "accueil.h"
 #include "afficheur.h"
 #include "joueur.h"
 
-
+/*
+    La reception dirige la connection arrivante vers le bon service (connection d'un nouveau joueur ou de l'afficheur).
+*/
 void reception(int connect){
     char c = 0;
     recv(connect, &c, 1, 0);
@@ -22,6 +25,9 @@ void reception(int connect){
     exit(0);
 }
 
+/*
+    La fonction accueil permet d'accueillir les connections TCP IPv4 du serveur afin de les dirigees vers la receptions.
+*/
 void accueil(){
     bool continu = true;
 
@@ -33,12 +39,12 @@ void accueil(){
 
     struct sockaddr_in socketAddr;
     socketAddr.sin_family = AF_INET;
-    socketAddr.sin_port = htons(25566);
+    socketAddr.sin_port = htons(PORT_SERVEUR);
     socketAddr.sin_addr.s_addr = INADDR_ANY;
     int tailleSockAddr = sizeof(socketAddr);
     printf("ACCUEIL>>Mise sur ecoute\n");
     bind(sock, (struct sockaddr *) &socketAddr, tailleSockAddr);
-    if(socketAddr.sin_port != htons(25566)) printf("Erreur de port !\n");
+    if(socketAddr.sin_port != htons(PORT_SERVEUR)) printf("Erreur de port !\n");
     listen(sock, nbClient);
     while(continu){
         printf("ACCUEIL>>Ecoute...\t\t(n°%d)\n", nbConnection);

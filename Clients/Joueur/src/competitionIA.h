@@ -13,7 +13,7 @@
     typedef struct msgServeurEnv
     {
         uint8_t sens;
-        int8_t acceleration;
+        int16_t acceleration;
         uint16_t angleRoues;
     } msgServeurEnv;
 

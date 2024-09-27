@@ -34,7 +34,10 @@ int main(int argc, char *argv[]){
     while(etat == 0){
         etat = recuperationInformationCourse(&msgRec, detecteur.nbDetecteur, socket_fd);
         controle(&msgRec, &msgEnv);
-        send(socket_fd, &msgEnv, 4, 0);
+        //send(socket_fd, &msgEnv, 5, 0);
+        send(socket_fd, &msgEnv.sens, 1, 0);
+        send(socket_fd, &msgEnv.acceleration, 2, 0);
+        send(socket_fd, &msgEnv.angleRoues, 2, 0);
         if(etat == 1){
             recv(socket_fd, &etat, 1, 0);
         }

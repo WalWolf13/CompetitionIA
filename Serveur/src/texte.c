@@ -9,8 +9,8 @@
 
 #define pi (double) 3.141592653589793
 
-chaineLexical initChaineLexical(){return NULL;}
-chaineLexical addChaineLexical(chaineLexical *chaine, objetLexical o, char* texte, int nombre, int ligne){
+chaineLexical init_chaineLexical(){return NULL;}
+chaineLexical ajoute_chaineLexical(chaineLexical *chaine, objetLexical o, char* texte, int nombre, int ligne){
     chaineLexical c;
     if(*chaine == NULL){
         *chaine = malloc(sizeof(mailleLexical));
@@ -35,7 +35,7 @@ chaineLexical addChaineLexical(chaineLexical *chaine, objetLexical o, char* text
     return c;
 }
 
-void freeChaineLexical(chaineLexical chaine){
+void free_chaineLexical(chaineLexical chaine){
     while(chaine != NULL){
         if(chaine->texte != NULL) free(chaine->texte);
         chaineLexical c = chaine;
@@ -48,7 +48,7 @@ void freeChaineLexical(chaineLexical chaine){
 /*
     Extrait les informations de la map
 */
-void extractionInformationMap(chaineLexical chaine, resultatGrammaire nb, Point* tabPoint, Ligne *tabLigne, Checkpoint *tabCheck, Emplacement* tabEmplacment, Arrivee* ligneDArrivee){
+void extraction_information_map(chaineLexical chaine, resultatGrammaire nb, Point* tabPoint, Ligne *tabLigne, Checkpoint *tabCheck, Emplacement* tabEmplacment, Arrivee* ligneDArrivee){
     chaineLexical explore = chaine;
     //Recuperation des coordonnes de chaque points
     while (explore->o != LEX_POINT){explore = explore->suite;}
@@ -97,7 +97,7 @@ void extractionInformationMap(chaineLexical chaine, resultatGrammaire nb, Point*
 /*
     Verifie que le fichier en entree respecte l'analyse grammatical et semantique voulu
 */
-resultatGrammaire analyseGrammatical(chaineLexical chaine){
+resultatGrammaire analyse_grammatical(chaineLexical chaine){
     chaineLexical explore = chaine;
     resultatGrammaire r;
     r.nbPoints = 0;
@@ -288,7 +288,7 @@ resultatGrammaire analyseGrammatical(chaineLexical chaine){
 
 chaineLexical lexer(FILE* fichier){
     bool premiereIte = false;
-    chaineLexical chaine = initChaineLexical();
+    chaineLexical chaine = init_chaineLexical();
     chaineLexical derniereMaille = chaine;
     int ligne = 1;
     char caract = fgetc(fichier);
@@ -309,12 +309,12 @@ chaineLexical lexer(FILE* fichier){
                 caract = fgetc(fichier);
             }
             texte[i] = '\0';
-            if(strcmp(texte, "points") == 0) derniereMaille = addChaineLexical(&derniereMaille, LEX_POINT, NULL, 0, ligne);
-            else if(strcmp(texte, "lignes") == 0) derniereMaille = addChaineLexical(&derniereMaille, LEX_LIGNE, NULL, 0, ligne);
-            else if(strcmp(texte, "checkpoints") == 0) derniereMaille = addChaineLexical(&derniereMaille, LEX_CHECK, NULL, 0, ligne);
-            else if(strcmp(texte, "emplacements") == 0) derniereMaille = addChaineLexical(&derniereMaille, LEX_EMPLACEMENT, NULL, 0, ligne);
-            else if(strcmp(texte, "arrivee") == 0) derniereMaille = addChaineLexical(&derniereMaille, LEX_ARRIVEE, NULL, 0, ligne);
-            else derniereMaille = addChaineLexical(&derniereMaille, LEX_NOM, texte, 0, ligne);
+            if(strcmp(texte, "points") == 0) derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_POINT, NULL, 0, ligne);
+            else if(strcmp(texte, "lignes") == 0) derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_LIGNE, NULL, 0, ligne);
+            else if(strcmp(texte, "checkpoints") == 0) derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_CHECK, NULL, 0, ligne);
+            else if(strcmp(texte, "emplacements") == 0) derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_EMPLACEMENT, NULL, 0, ligne);
+            else if(strcmp(texte, "arrivee") == 0) derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_ARRIVEE, NULL, 0, ligne);
+            else derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_NOM, texte, 0, ligne);
             free(texte);
         }
         //Cas d'un nombre
@@ -325,7 +325,7 @@ chaineLexical lexer(FILE* fichier){
                 resultat += caract-'0';
                 caract = fgetc(fichier);
             }
-            derniereMaille = addChaineLexical(&derniereMaille, LEX_NOMBRE, NULL, resultat, ligne);
+            derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_NOMBRE, NULL, resultat, ligne);
         }
         //Saut de ligne
         else if(caract == '\n'){
