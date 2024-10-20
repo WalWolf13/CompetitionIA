@@ -7,6 +7,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 
 
@@ -17,6 +18,10 @@
 #include "map.h"
 #include "jeu.h"
 
+void fin_de_programme_demmarage(){
+    AFFICHE_CONSEIL(" risque d'erreur au demarrage, utiliser la commande \"ipcrm -a\"\n");
+    exit(-1);
+}
 
 void fin_de_programme(int sig){
 
@@ -50,9 +55,9 @@ void fin_de_programme(int sig){
     int shmidJoueur = shmget(cleJoueur, sizeof(Voiture)*(*nbJoueurMax), 0666);
 
     key_t cleCourse = ftok("informationCourse", 1);
-    int shmidStart = shmget(cleCourse, sizeof(uint8_t), IPC_CREAT | 0666);
+    int shmidStart = shmget(cleCourse, sizeof(uint8_t), 0666);
 
-    int semidJoueur = semget(cleJoueur, 1, IPC_CREAT | 0666);
+    int semidJoueur = semget(cleJoueur, 1, 0666);
     semctl(semidJoueur, 0, SETVAL, 1);
 
     shmdt(nbJoueurMax);
@@ -79,36 +84,15 @@ void fin_de_programme(int sig){
 
 int main(int argc, char *argv[]){
 
-
-    //Gestion des erreurs d'entree
-
-    //Nombre d'argument
     if(argc != 2){
-        AFFICHE_ERREUR(" l'execution du serveur necessite un argument qui est le nombre de joueur\n");
+        AFFICHE_ERREUR(" le fichier map doit etre precise !\n");
         exit(-1);
     }
 
-    //L'argurment doit etre un nombre
-    int nombreDeParticipant = 0;
-    char* c = argv[1];
-    while(*c != '\0'){
-        if(*c > '9' || *c < '0'){
-            AFFICHE_ERREUR(" l'execution du serveur necessite un argument qui est un ");
-            printf("\033[38;2;255;0;0m");//Ecriture en rouge
-            printf("NOMBRE");
-            printf("\033[m");//Ecriture de couleur normale
-            printf(" de joueur\n");
-            exit(-2);
-        }
-        nombreDeParticipant *= 10;
-        nombreDeParticipant += *c - '0';
-        c++;
-    }
-    printf("Serveur>> Nombre de joueur : %d\n", nombreDeParticipant);
-
     //Lecture de la MAP
-    charger_fichier_map("carte0.m");
+    charger_fichier_map(argv[1]);
 
+    //Recuperation des information de la carte
     key_t cleBase = ftok("informationCarte", 1);
     int shmidInfoMap = shmget(cleBase, sizeof(infoBaseMap), 0666);
     infoBaseMap *inf = shmat(shmidInfoMap, NULL, 0666);
@@ -120,9 +104,14 @@ int main(int argc, char *argv[]){
 
     //Initialisation des voitures dans la memoire partagee des processus
     key_t cleNbJoueurMax = ftok("informationJoueur", 1);
+    if(cleNbJoueurMax == -1){
+        AFFICHE_ERREUR(" fichier \"informationJoueur\" introuvable.\n");
+        AFFICHE_SOLUTION(" creer un fichier vide \"informationJoueur\" dans votre repertoire courant.\n");
+        fin_de_programme_demmarage();
+    }
     int shmidNbJoueurMax = shmget(cleNbJoueurMax, sizeof(int), IPC_EXCL | IPC_CREAT | 0666);
     int *nbJoueurMax = shmat(shmidNbJoueurMax, NULL, 0666);
-    *nbJoueurMax = nombreDeParticipant;
+    *nbJoueurMax = inf->nbEmplacements;
     shmdt(nbJoueurMax);
 
     key_t cleNbJoueur = ftok("informationJoueur", 2);
@@ -132,9 +121,9 @@ int main(int argc, char *argv[]){
     shmdt(nbJoueur);
 
     key_t cleJoueur = ftok("informationJoueur", 3);
-    int shmid = shmget(cleJoueur, sizeof(Voiture)*nombreDeParticipant, IPC_EXCL | IPC_CREAT | 0666);
+    int shmid = shmget(cleJoueur, sizeof(Voiture)*inf->nbEmplacements, IPC_EXCL | IPC_CREAT | 0666);
     Voiture *joueur = shmat(shmid, NULL, 0666);
-    for(int i = 0; i < nombreDeParticipant; i++){
+    for(int i = 0; i < inf->nbEmplacements; i++){
         sprintf(joueur[i].nom, "Joueur %d", i);
         joueur[i].angleRoue = 0;
         joueur[i].largeur = LARGEUR_VOITURE;
@@ -153,6 +142,11 @@ int main(int argc, char *argv[]){
 
     //Initialisation du demarreur de la course
     key_t cleCourse = ftok("informationCourse", 1);
+    if(cleCourse == -1){
+        AFFICHE_ERREUR(" fichier \"informationCourse\" introuvable.\n");
+        AFFICHE_SOLUTION(" creer un fichier vide \"informationCourse\" dans votre repertoire courant.\n");        
+        fin_de_programme_demmarage();
+    }
     int shmidStart = shmget(cleCourse, sizeof(uint8_t), IPC_EXCL | IPC_CREAT | 0666);
     uint8_t *start = shmat(shmidStart, NULL, 0666);
     *start = 0;
@@ -162,11 +156,11 @@ int main(int argc, char *argv[]){
     int semidJoueur = semget(cleJoueur, 1, IPC_EXCL | IPC_CREAT | 0666);
     semctl(semidJoueur, 0, SETVAL, 1);
 
-
-    switch (fork()){
+    pid_t pidFils = fork();
+    switch (pidFils){
     case 0:
         accueil();
-
+        exit(0);
         break;
     case -1:
         AFFICHE_ERREUR(" Creation du processus d'accueil du serveur a echoue\n");
@@ -176,12 +170,8 @@ int main(int argc, char *argv[]){
         jeu();
         break;
     }
-
-    /*semctl(semidJoueur, 0, IPC_RMID);
-    shmctl(shmidNbJoueur, IPC_RMID, NULL);
-    shmctl(shmidNbJoueurMax, IPC_RMID, NULL);
-    shmctl(shmidStart, IPC_RMID, NULL);
-    shmctl(shmid, IPC_RMID, NULL);*/
-
+    
+    kill(pidFils, SIGINT);
+    wait(NULL);
     fin_de_programme(0);
 }

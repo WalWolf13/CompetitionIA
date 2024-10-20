@@ -1,0 +1,81 @@
+[gd_scene load_steps=3 format=3 uid="uid://mqlb2tsoedl6"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_gbmhy"]
+[ext_resource type="Script" path="res://ServerPeer.gd" id="1_skkvn"]
+
+[node name="main" type="Node2D"]
+script = ExtResource("1_gbmhy")
+
+[node name="Cars" type="Node" parent="."]
+
+[node name="ServerPeer" type="Node" parent="."]
+script = ExtResource("1_skkvn")
+
+[node name="Walls" type="Node" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(115208, 64738)
+zoom = Vector2(0.01, 0.01)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer"]
+offset_left = 205.0
+offset_top = 237.0
+offset_right = 339.0
+offset_bottom = 294.0
+text = "127.0.0.1"
+placeholder_text = "IP Host"
+
+[node name="LineEdit2" type="LineEdit" parent="CanvasLayer"]
+offset_left = 205.0
+offset_top = 312.0
+offset_right = 339.0
+offset_bottom = 369.0
+text = "25566"
+placeholder_text = "Port host"
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+offset_left = 144.0
+offset_top = 256.0
+offset_right = 184.0
+offset_bottom = 279.0
+text = "IP :"
+
+[node name="Label2" type="Label" parent="CanvasLayer"]
+offset_left = 144.0
+offset_top = 331.0
+offset_right = 184.0
+offset_bottom = 354.0
+text = "Port"
+
+[node name="Button2" type="Button" parent="CanvasLayer"]
+offset_left = 440.0
+offset_top = 277.0
+offset_right = 639.0
+offset_bottom = 322.0
+text = "Connect"
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Button" type="Button" parent="CanvasLayer2"]
+offset_left = 57.0
+offset_top = 12.0
+offset_right = 370.0
+offset_bottom = 71.0
+text = "Start race"
+
+[node name="CanvasLayer3" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="ButtonChangerVehicule" type="Button" parent="CanvasLayer3"]
+offset_left = 957.0
+offset_top = 33.0
+offset_right = 1113.0
+offset_bottom = 72.0
+text = "Changer de voiture"
+
+[connection signal="button_down" from="CanvasLayer/Button2" to="." method="connect_button"]
+[connection signal="button_down" from="CanvasLayer2/Button" to="." method="start_race"]
+[connection signal="button_down" from="CanvasLayer3/ButtonChangerVehicule" to="." method="change_vehicule"]

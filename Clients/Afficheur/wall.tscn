@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://cyse67llfmomp"]
+
+[node name="Wall" type="Line2D"]
+width = 1000.0

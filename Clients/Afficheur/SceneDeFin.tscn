@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://c77jnxb23o82"]
+
+[node name="SceneDeFin" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -47.5
+offset_top = -11.5
+offset_right = 47.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+focus_mode = 2
+theme_override_constants/outline_size = 7
+text = "Course fini !"
+scroll_active = false
+selection_enabled = true
+structured_text_bidi_override_options = [null]

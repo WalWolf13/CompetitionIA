@@ -11,8 +11,13 @@ OBJ= $(SRC:.c=.o)
 
 all : $(OBJ)
 	@echo Edition des liens...
-	@$(CC) $(addprefix bin/, $^) $(FLAGS_E) -o exe/prog
+	@$(CC) $(addprefix bin/, $^) $(FLAGS_E) -o exe/ia
 	@echo Terminé !
 
+clean :
+	@rm bin/*
+	@rm exe/*
+	@echo "Fichier(s) supprimé(s) !"
+
 start :
-	@./exe/prog
+	@./exe/ia 127.0.0.1

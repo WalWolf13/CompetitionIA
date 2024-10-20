@@ -10,6 +10,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+
+extern void fin_de_programme_demmarage(void);
+
 char *concatene(char *a, char*b){
     int lenA, lenB;
     lenA = strlen(a);
@@ -29,7 +32,7 @@ int charger_fichier_map(char *fileName){
     if(fichier == NULL){
         AFFICHE_ERREUR(" Impossible d'ouvrir le fichier ");
         printf("\"%s\"\n", path);
-        return -1;
+        exit(-1);
     }
     free(path);
     chaineLexical maChaine = lexer(fichier);
@@ -38,6 +41,11 @@ int charger_fichier_map(char *fileName){
 
     //Ajout des informations recuperer par l'annalyseur grammatical en memoire partage
     key_t cleBase = ftok("informationCarte", 1);
+    if(cleBase == -1){
+        AFFICHE_ERREUR(" fichier \"informationCarte\" introuvable.\n");
+        AFFICHE_SOLUTION(" creer un fichier vide \"informationCarte\" dans votre repertoire courant.\n");
+        fin_de_programme_demmarage();
+    }
     int shmidInfoMap = shmget(cleBase, sizeof(infoBaseMap), IPC_EXCL | IPC_CREAT | 0666);
     infoBaseMap *inf = shmat(shmidInfoMap, NULL, 0666);
     inf->nbCheckpoints = r.nbCheckpoints;

@@ -58,7 +58,7 @@ Rectangle recupere_point_Voiture_double(Voiture *v){
 }
 
 double mesure_detecteur(Rectangle abcd, Point v, double angle, Ligne *mur, int nbMur){
-    Point p = point_sur_rectangle_selon_angle(abcd, angle);
+    Point p = point_sur_rectangle_selon_angle(abcd, -angle);
     DemiDroite vp;
     vp.a = v;
     vp.b = p;
@@ -85,27 +85,39 @@ void  mesure_detecteurs(Voiture *v, Ligne *mur, int nbMur){
 }
 
 
-double accel_vers_force(int16_t accel){
+double accel_vers_force_marche(int16_t accel){
     //double commande = accel;
     double f = 0;
     if(accel > 0){
-        f = 2.*accel*(((double) 8213.)/((double) 32767.));
+        f = accel*(((double) 8213.)/((double) 32767.));
     }
-    /*else if(accel < 0){
-        f = accel*(((double) 36788)/((double) 32768));
-    }*/
+    else{
+        f = accel*(((double) 12735.)/((double) 32768.));
+    }
     return f;
 }
 
-
-double calcule_vitesse(double v, int16_t accel){
+double calcule_vitesse(double v, int16_t accel, Voiture_Marche sens){
     double p_0 = 0.99942;
-    double a = 3.3323741989e-6;
-    return p_0*v + a*accel_vers_force(accel);
+    double a = 6.664748214e-6;
+    double vitesseFinal = p_0*v;
+    if(sens == VOITURE_M_AVANT && vitesseFinal > -0.5){
+        double force = accel_vers_force_marche(accel);
+        vitesseFinal = p_0*v + a*force;
+        if(vitesseFinal > 100.) vitesseFinal = 100.;
+        else if(vitesseFinal < 0.) vitesseFinal = 0.;
+    }
+    else if(sens == VOITURE_M_ARRIERE && vitesseFinal < 0.5){
+        double force = accel_vers_force_marche(accel);
+        vitesseFinal = p_0*v - a*force;
+        if(vitesseFinal > 0.) vitesseFinal = 0.;
+        else if(vitesseFinal < -2.7) vitesseFinal = -2.7;
+    }
+    return vitesseFinal;
 }
 
 void calcule_trajectoire(Voiture *v){
-    v->vitesse = calcule_vitesse(v->vitesse, v->acceleration);
+    v->vitesse = calcule_vitesse(v->vitesse, v->acceleration, v->marche_av_ar);
 
     double x;
     double y;

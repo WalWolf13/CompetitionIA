@@ -11,8 +11,13 @@ OBJ= $(SRC:.c=.o)
 
 all : $(OBJ)
 	@echo Edition des liens...
-	@$(CC) $(addprefix bin/, $^) $(FLAGS_E) -o exe/prog
+	@$(CC) $(addprefix bin/, $^) $(FLAGS_E) -o exe/serveur
 	@echo Terminé !
 
+clean :
+	@rm bin/*
+	@rm exe/*
+	@echo "Fichier(s) supprimé(s) !"
+
 start :
-	@./exe/prog 2
+	@./exe/serveur carte0.m

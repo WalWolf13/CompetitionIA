@@ -19,7 +19,10 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
     detect detecteur = initialisation();
-    int socket_fd = connexion(argv[1], __COMPETITION_IA_NOM_DU_JOUEUR__, detecteur.nbDetecteur, detecteur.detecteur);
+
+    calculMessageDetecteur(&detecteur);
+
+    int socket_fd = connexion(argv[1], __COMPETITION_IA_NOM_DU_JOUEUR__, detecteur.nbDetecteur, detecteur.detecteurMsg);
     uint8_t msgServ = 0;
     printf("En attente de demarrage de la course !\n");
     recv(socket_fd, &msgServ, 1, 0);
@@ -31,17 +34,22 @@ int main(int argc, char *argv[]){
     int etat = 0;//correspond à l'etat de la course
     msgServeurRec msgRec;
     msgServeurEnv msgEnv;
+    entreeControleur entree;
+    sortieControleur sortie;
     while(etat == 0){
         etat = recuperationInformationCourse(&msgRec, detecteur.nbDetecteur, socket_fd);
-        controle(&msgRec, &msgEnv);
-        //send(socket_fd, &msgEnv, 5, 0);
-        send(socket_fd, &msgEnv.sens, 1, 0);
-        send(socket_fd, &msgEnv.acceleration, 2, 0);
-        send(socket_fd, &msgEnv.angleRoues, 2, 0);
+        entree = convertisseurEntree(&msgRec, detecteur.nbDetecteur);
+        controle(&entree, &sortie);
+        msgEnv = convertisseurSortie(&sortie);
+        if(etat == 0){
+            send(socket_fd, &msgEnv.sens, 1, 0);
+            send(socket_fd, &msgEnv.acceleration, 2, 0);
+            send(socket_fd, &msgEnv.angleRoues, 2, 0);
+        }
         if(etat == 1){
             recv(socket_fd, &etat, 1, 0);
         }
     }
-
+    printf("La course est fini !\n");
     return 0;
 }

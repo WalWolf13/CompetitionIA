@@ -35,6 +35,8 @@ void afficheur_communication(int connect){
     // Reponse du serveur
     uint8_t msg[3] = {'V', 'O', 'K'};
     send(connect, msg, 3, 0);
+    printf("AFFICHEUR>>Connecter !\n");
+
 
     // Recuperation de la memoire partagee
     
@@ -69,7 +71,7 @@ void afficheur_communication(int connect){
     while (c != 255){
         if (recv(connect, &c, 1, 0) == -1)
             c = 255;
-        //printf("AFFICHEUR>> Demande %d\n", c);
+        if(dejaDemarrer == 1 && *start != 1) c = 255;
         switch (c){
         case 1: {// Renvoi sur 2 octets du nombre de lignes
             uint16_t mem = (uint16_t)infoMap->nbLignes;
@@ -115,7 +117,6 @@ void afficheur_communication(int connect){
 
         case 5: // Demarre la course
             if(dejaDemarrer == 0){
-                printf("Demarrage de la course !\n");
                 *start = 1;
                 dejaDemarrer = 1;
             }
@@ -131,4 +132,6 @@ void afficheur_communication(int connect){
     shmdt(start);
     shmdt(tabLignes);
     shmdt(infoMap);
+
+    return;
 }

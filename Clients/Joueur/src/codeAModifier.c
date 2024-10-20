@@ -1,61 +1,60 @@
 #include "competitionIA.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include <math.h>
 
 detect initialisation(){
     detect detecteur;
-    detecteur.nbDetecteur = 3; //Choisir le nombre de detecteur voulu entre 1 et 10 inclu
+    detecteur.nbDetecteur = 4; //Choisir le nombre de detecteur voulu entre 1 et 10 inclu
     //Configuration de chaque detecteur :
-    detecteur.detecteur[0] = 0;
-    detecteur.detecteur[1] = 36940;
-    detecteur.detecteur[2] = 28596;
+    detecteur.detecteur[0] = -180;
+    detecteur.detecteur[1] = 45.;
+    detecteur.detecteur[2] = -45.;
+    detecteur.detecteur[3] = 0.;
 
     return detecteur;
 }
 
-int compteur= 0;
-
 
 //Contrôle le comportement de la voiture selon les valeurs reçues
-void controle(msgServeurRec *informationRecu, msgServeurEnv *informationAEnvoyer){
-    //printf("Vitesse recu : %d cm/s\n", informationRecu->vitesse);
-    
-    // printf("Detecteur :\n");
-    // for(int i = 0; i < 3; i++){
-    //     printf("\t%d : %f\n", i, convertisseurDetecteur(informationRecu->detecteur[i]));
-    // }
+void controle(entreeControleur *entree, sortieControleur *sortie){
 
+    static int arrive = 0;
+    static int marcheArriere = 0;
+    static int v_zero = 0;
+    sortie->sens = MARCHE_AVANT;
     double vitesseConsigne = 1000;// m/s
-    double vitesse = ((double)informationRecu->vitesse) / 100.;
-    //if(convertisseurDetecteur(informationRecu->detecteur[0]) > 19) vitesseConsigne = 3;
-
-    double accelF = (vitesseConsigne - vitesse)*750;
-    int16_t accel = 0;
-    if(accelF > 32767) accel = 32767;
-    else if (accelF < -32767) accel = -32767;
-    else accel = accelF;
-    //accel = 32767;
-    printf("vitesse : %f\n", vitesse);
-    //int8_t accel = 1;
-    // if(compteur >= 5) accel = 0;
-    //if(convertisseurDetecteur(informationRecu->detecteur[0])< 3.0) accel = -127;
-    //if(compteur > 300 && compteur < 200) printf("accel : %d\n", accel);
-
-    double esp = convertisseurDetecteur(informationRecu->detecteur[1])-convertisseurDetecteur(informationRecu->detecteur[2]);
-    if(esp > 0) {
-        informationAEnvoyer->angleRoues = 0;//49152;
-        //printf("Gauche\n");
+    double vitesse = entree->vitesse;
+    
+    if((vitesse < 0.1) && marcheArriere == 0){
+        v_zero++;
     }
-    else{
-        informationAEnvoyer->angleRoues = 65535;
-        //printf("Droite\n");
-    } 
-    //else informationAEnvoyer->angleRoues = 32768;
+    if(v_zero == 10 && marcheArriere == 0){
+        v_zero = 10;
+        marcheArriere = 1;
+    }
+    
+    if(vitesse > 85) arrive = 1;
+    if(arrive) vitesseConsigne = 27;
+    double accelF = (vitesseConsigne - abs(vitesse))*750;
 
-    informationAEnvoyer->acceleration = accel;
-    //informationAEnvoyer->angleRoues = 0;//49152;
-    informationAEnvoyer->sens = 0;
+
+    double esp = entree->detecteur[2]-entree->detecteur[1];
+    esp = -(3./2.)*esp;
+    if(marcheArriere){
+        sortie->sens = MARCHE_ARRIERE;
+        v_zero--;
+        esp =  -100*esp;
+        if(v_zero <= 0){
+            v_zero = 0;
+            marcheArriere = 0;
+        }
+    }
 
 
-    compteur++;
+    sortie->angleRoues = esp;
+    sortie->acceleration = accelF;
+
 }

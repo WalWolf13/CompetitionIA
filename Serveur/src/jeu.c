@@ -17,7 +17,7 @@
 #include <sys/shm.h>
 #include <sys/time.h>
 
-bool running;
+uint8_t *start;
 
 uint64_t calcule_difference_temps_us(struct timeval tempsDeb_t, struct timeval tempsFin_t){
     uint64_t delta_t;
@@ -34,8 +34,7 @@ uint64_t calcule_difference_temps_us(struct timeval tempsDeb_t, struct timeval t
 }
 
 void quitter_simulation(int sig){
-    printf("\nSIMULATION>>Fin !\n");
-    running = false;
+    *start = false;
 }
 
 
@@ -66,16 +65,19 @@ bool verification_checkpoint_voiture(Voiture *v, Checkpoint *listeCheckpoint, ui
     return false;
 }
 
-void verification_checkpoint(Voiture *v, int nbVoiture, Checkpoint *listeCheckpoint, uint16_t nbCheckpoint, Arrivee* ligneDArrivee, uint64_t nbIteration){
+bool verification_checkpoint(Voiture *v, int nbVoiture, Checkpoint *listeCheckpoint, uint16_t nbCheckpoint, Arrivee* ligneDArrivee, uint64_t nbIteration){
+    bool finDeLaCourse = true;
     for(int i = 0; i < nbVoiture; i++){
             if(verification_checkpoint_voiture(&v[i], listeCheckpoint, nbCheckpoint, ligneDArrivee)){
                 v[i].fini = true;
                 v[i].x = -1;
                 v[i].y = -1;
                 v[i].tempDeFin = nbIteration;
-                printf("Voiture[%d]>> J'ai fini en %f s\n", v[i].pid, ((double)nbIteration)*0.005 );
+                printf("%s[%d]>> J'ai fini en %f s\n", v[i].nom, v[i].id, ((double)nbIteration)*0.005 );
             }
+            finDeLaCourse &= v[i].fini;
     }
+    return !finDeLaCourse;
 }
 
 void jeu(){
@@ -123,7 +125,7 @@ void jeu(){
     //Demarreur de la course
     key_t cleCourse = ftok("informationCourse", 1);
     int shmidStart = shmget(cleCourse, sizeof(uint8_t), 0666);
-    uint8_t *start = shmat(shmidStart, NULL, 0666);
+    start = shmat(shmidStart, NULL, 0666);
 
     while (*start != 1)
     {
@@ -134,14 +136,13 @@ void jeu(){
     signal(SIGINT, quitter_simulation);
 
     //"Simulation"
-    running = true;
     uint64_t delta_t = 0;// en us
     uint64_t nbIteration = 0;
 
 
     uint64_t delta_t_max = 0;
 
-    while(running){
+    while(*start){
 
         //Recuperation du temps pour la periode d'echantillonage
         struct timeval tempsDeb_t;
@@ -151,13 +152,16 @@ void jeu(){
         avancer_monde(joueur, *nbJoueur, infoMap, tabLignes);
 
         //Verification des passages aux checkpoints
-        verification_checkpoint(joueur, *nbJoueur, tabChecks, infoMap->nbCheckpoints, ligneDArrivee, nbIteration);
+        *start = verification_checkpoint(joueur, *nbJoueur, tabChecks, infoMap->nbCheckpoints, ligneDArrivee, nbIteration);
 
         //Mise en attente du programme si besoin
         struct timeval tempsFin_t;
         gettimeofday(&tempsFin_t, NULL);
         delta_t = calcule_difference_temps_us(tempsDeb_t, tempsFin_t);
-        printf("Deltat_t max : %ld µs\n", delta_t_max);
+
+        #ifdef __TIME_VERIF__
+            printf("Deltat_t max : %ld µs\n", delta_t_max);
+        #endif
         if(delta_t > delta_t_max) delta_t_max = delta_t;
         while (delta_t < TPS_ECHANTILLONNAGE*1000){
             usleep(TPS_ECHANTILLONNAGE);
@@ -165,6 +169,11 @@ void jeu(){
             delta_t = calcule_difference_temps_us(tempsDeb_t, tempsFin_t);
         }
         nbIteration++;
+    }
+    printf("Simulation>>Course fini !\n");
+
+    for(int i = 0; i < *nbJoueur; i++){
+        kill(joueur[i].pid, SIGUSR1);  
     }
 
     //Liberation des segments de memoire partagee

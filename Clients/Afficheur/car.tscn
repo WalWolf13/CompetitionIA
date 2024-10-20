@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://mugvag7s1n26"]
+
+[ext_resource type="Texture2D" uid="uid://bn76fbgl36fm4" path="res://formule.png" id="1_ux0i6"]
+
+[sub_resource type="Gradient" id="Gradient_4drpp"]
+offsets = PackedFloat32Array(0.994444, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_85r6l"]
+gradient = SubResource("Gradient_4drpp")
+
+[node name="Car" type="Node2D"]
+
+[node name="Ligne" type="Sprite2D" parent="."]
+visible = false
+rotation = -0.785398
+scale = Vector2(160, 100)
+texture = SubResource("GradientTexture1D_85r6l")
+
+[node name="Ligne2" type="Sprite2D" parent="."]
+visible = false
+rotation = 0.785398
+scale = Vector2(50, 100)
+texture = SubResource("GradientTexture1D_85r6l")
+
+[node name="RedCar" type="Sprite2D" parent="."]
+rotation = -3.14159
+scale = Vector2(-1, -1)
+texture = ExtResource("1_ux0i6")

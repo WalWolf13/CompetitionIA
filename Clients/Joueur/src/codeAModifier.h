@@ -4,6 +4,6 @@
     #define __COMPETITION_IA_NOM_DU_JOUEUR__ "Joueur 0"
 
     detect initialisation();
-    void controle(msgServeurRec *informationRecu, msgServeurEnv *informationAEnvoyer);
+    void controle(entreeControleur *entree, sortieControleur *sortie);
 
 #endif

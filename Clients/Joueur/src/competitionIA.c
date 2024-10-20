@@ -68,6 +68,10 @@ int recuperationInformationCourse(msgServeurRec *msgRec, int nbDetecteur, int so
 
 /*
     Permet de se connecter au serveur de la competition
+    @param adresse du serveur
+    @param nomDuJoueur nom du joueur afficher sur le serveur
+    @param nbDetecteur le nombre de detecteur que possede la voiture (il doit etre en 1 et 10 compris)
+    @param detecteur est un tableau correspondant aux angles de placement des detecteurs
     @return socket de communication
 */
 int connexion(char address[], char nomDuJoueur[], uint8_t nbDetecteur, uint16_t detecteur[]){
@@ -121,8 +125,50 @@ int connexion(char address[], char nomDuJoueur[], uint8_t nbDetecteur, uint16_t 
 }
 
 
-
+/*
+    Converti en metre la valeur recu par le serveur
+    @param distInt Distance recu du serveur
+    @return distance en metre
+*/
 double convertisseurDetecteur(uint16_t distInt){
     double rep = distInt;
-    return rep*20/65535;
+    return rep*20./65535.;
+}
+
+entreeControleur convertisseurEntree(msgServeurRec *msg, int nbDetecteur){
+    entreeControleur resultat;
+    resultat.vitesse = ((double) msg->vitesse)/100.;
+    if(msg->sens == 0) resultat.sens = MARCHE_AVANT;
+    else resultat.sens = MARCHE_ARRIERE;
+    resultat.anglesRoues = (30.)*((double)(msg->anglesRoues-32768))/32768.;
+    for(int i = 0; i < nbDetecteur; i++){
+        resultat.detecteur[i] = convertisseurDetecteur(msg->detecteur[i]);
+    }
+    return resultat;
+}
+
+msgServeurEnv convertisseurSortie(sortieControleur *msg){
+    msgServeurEnv resultat;
+    if(msg->acceleration <= 32767 && msg->acceleration >= -32768) resultat.acceleration = msg->acceleration;
+    else if(msg->acceleration > 32767) resultat.acceleration = 32767;
+    else resultat.acceleration = -32768;
+    if(msg->angleRoues <= 30. && msg->angleRoues >= -30.) {
+        if(msg->angleRoues >= 0) resultat.angleRoues = (msg->angleRoues*(1./30.)*32767)+32768;
+        else resultat.angleRoues = (msg->angleRoues*(1./30.)*32768)+32768;
+    }
+    else if (msg->angleRoues >= 30.) resultat.angleRoues = 65535;
+    else resultat.angleRoues = 0;
+    if(msg->sens == MARCHE_AVANT) resultat.sens = 0;
+    else resultat.sens = 1;
+    return resultat;
+}
+
+void calculMessageDetecteur(detect *detecteurs){
+    for(int i = 0; i < detecteurs->nbDetecteur; i++){
+        if(detecteurs->detecteur[i] >= 180. || detecteurs->detecteur[i] < -180.){
+            printf("L'angle pour placer un detecteur doit etre dans [-180; 180[\n");
+            exit(-1);
+        }
+        detecteurs->detecteurMsg[i] = ((detecteurs->detecteur[i]/180.)*32768.)+32768;
+    }
 }

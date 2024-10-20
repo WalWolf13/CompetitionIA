@@ -19,17 +19,20 @@
 
 int socket_client;
 Voiture *voiture;
+uint8_t *start_course;
 
 void envoi_information(int signal){
     for(int i = 0; i < voiture->nbDetecteur; i++){
-        uint16_t msg = ((double) voiture->distDetecteur[i])*65535/DISTANCE_MAX_DETECTEUR_VOITURE;
+        uint16_t msg = ((double) voiture->distDetecteur[i])*65535./DISTANCE_MAX_DETECTEUR_VOITURE;
         //if(voiture->distDetecteur[i] >= DISTANCE_MAX_DETECTEUR_VOITURE) msg = 65535;
         send(socket_client, &msg, 2, 0);
     }
     uint8_t marche = voiture->marche_av_ar;
     uint16_t vitesse = voiture->vitesse*100;
     uint16_t angleRoue = (voiture->angleRoue*6*32768/pi)+32768;
-    uint8_t msg = 0;
+    uint8_t msg;
+    if(*start_course == 1) msg = 0;
+    else msg = 2;
     send(socket_client, &marche, 1, 0);
     send(socket_client, &vitesse, 2, 0);
     send(socket_client, &angleRoue, 2, 0);
@@ -67,7 +70,7 @@ void nouveau_joueur(int connect){
     //Demarreur de la course
     key_t cleCourse = ftok("informationCourse", 1);
     int shmidStart = shmget(cleCourse, sizeof(uint8_t), 0666);
-    uint8_t *start = shmat(shmidStart, NULL, 0666);
+    start_course = shmat(shmidStart, NULL, 0666);
 
     struct sembuf sem_oper;
     sem_oper.sem_num = 0;
@@ -83,8 +86,7 @@ void nouveau_joueur(int connect){
         if(*nbJoueur >= *nbJoueurMax){
             uint8_t msg = 255;
             send(connect, &msg, 1, 0);
-            close(connect);
-            exit(-1);
+            return;
         }
         id = *nbJoueur;
         *nbJoueur += 1;
@@ -101,13 +103,13 @@ void nouveau_joueur(int connect){
         uint8_t msg = 255;
         send(connect, &msg, 1, 0);
         close(connect);
-        exit(-1);
+        return;
     }
     for(int i = 0; i < joueur[id].nbDetecteur; i++){
         uint16_t msg;
         recv(connect, &msg, 2, 0);
 
-        joueur[id].detecteur[i] = ((float) msg - 32768.) * pi / 32768.;
+        joueur[id].detecteur[i] = ((double) msg - 32768.) * pi / 32768.;
     }
 
     {
@@ -116,28 +118,27 @@ void nouveau_joueur(int connect){
     }
 
 
-    //teste affichage des valeurs :
-    printf("nouveau Joueur :\n");
+    //Parametres des joueurs :
+    printf("Nouveau Joueur :\n");
     printf("\tNumero : %d\n", id);
     printf("\tNom : %s\n", joueur[id].nom);
     printf("\tNombre de detecteur : %d\n", joueur[id].nbDetecteur);
     for(int i = 0; i < joueur[id].nbDetecteur; i++){
-        printf("\tDetecteur %d : %f\n", i, joueur[id].detecteur[i]);
+        printf("\tDetecteur %d : %f°\n", i, joueur[id].detecteur[i]*180./pi);
     }
 
     voiture = &joueur[id];
     signal(SIGUSR1, envoi_information);
 
-    while(*start != 1){
+    while(*start_course != 1){
         usleep(50);
     }
-    printf("[%d]>>Debut de course !\n", id);
     
     {
         uint8_t msg = 1;
         send(connect, &msg, 1, 0);
     }
-    while(*start == 1){
+    while(*start_course == 1){
         uint8_t msg0 = 0;
         uint16_t msg1 = 0;
         int16_t msg2;
@@ -145,10 +146,9 @@ void nouveau_joueur(int connect){
         voiture->marche_av_ar = msg0;
         recv(connect, &msg2, 2, 0);
         voiture->acceleration = msg2;
-        //printf("accel : %d\n", voiture->acceleration);
         recv(connect, &msg1, 2, 0);
         voiture->angleRoue = (pi/6)*((double)(msg1-32768))/32768;
-        //printf("Angle roues : %f\n", voiture->angleRoue);
     }
-    
+
+    return;    
 }
