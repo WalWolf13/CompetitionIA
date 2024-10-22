@@ -24,7 +24,6 @@ in_addr_t IPv4_address(char address[]){
         k++;
         int j = 0;
         while(c != '.' && c != '\0'){
-            printf("%c", c);
             chaine[i][j] = c;
             j++;
             c = address[k];
@@ -36,14 +35,12 @@ in_addr_t IPv4_address(char address[]){
         }
         chaine[i][j] = '\0';
     }
-    printf("\nL'adresse est %s.%s.%s.%s\n", chaine[0], chaine[1], chaine[2], chaine[3]);
     
     uint32_t adresse = 0;
     for(int i = 0; i < 4; i++){
         adresse <<= 8;
         adresse += atoi(chaine[i]);
     }
-    printf("L'adresse : %d\n", adresse);
     return htonl(adresse);
 }
 
