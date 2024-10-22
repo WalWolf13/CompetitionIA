@@ -5,18 +5,32 @@ FLAGS_C = -fsanitize=address
 
 OBJ= $(SRC:.c=.o)
 
+
+all : createFolder edition
+	@echo Terminé !
+
 %.o : src/%.c
 	@echo Compilation de $<
 	@$(CC) -c $< -Wall $(FLAGS_C) -o bin/$*.o
 
-all : $(OBJ)
+edition : $(OBJ)
 	@echo Edition des liens...
 	@$(CC) $(addprefix bin/, $^) $(FLAGS_E) -o exe/ia
-	@echo Terminé !
 
-clean :
-	@rm bin/*
-	@rm exe/*
+
+createFolder : cleanFolder
+	@mkdir bin
+	@mkdir exe
+
+cleanFolder : cleanFile
+	@rm -f -r bin
+	@rm -f -r exe
+
+cleanFile :
+	@rm -f bin/*
+	@rm -f exe/*
+
+clean : cleanFolder
 	@echo "Fichier(s) supprimé(s) !"
 
 start :
