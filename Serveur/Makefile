@@ -34,4 +34,4 @@ clean : cleanFolder
 	@echo "Fichier(s) supprimé(s) !"
 
 start :
-	@./exe/serveur carte0.m
+	@./exe/serveur carte2.m

@@ -42,3 +42,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+/Serveur/exe
+/Clients/Joueur/exe

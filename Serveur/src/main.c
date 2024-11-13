@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
         joueur[i].largeur = LARGEUR_VOITURE;
         joueur[i].longueur = LONGUEUR_VOITURE;
         joueur[i].masse = MASSE_VOITURE;
-        joueur[i].omega = tabEmpl[i].angle;
+        joueur[i].omega = -tabEmpl[i].angle;
         joueur[i].vitesse = 0;
         joueur[i].x = tabEmpl[i].a.x;
         joueur[i].y = tabEmpl[i].a.y;

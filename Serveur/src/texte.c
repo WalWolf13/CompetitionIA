@@ -318,13 +318,23 @@ chaineLexical lexer(FILE* fichier){
             free(texte);
         }
         //Cas d'un nombre
-        else if(caract >= '0' && caract <= '9'){
+        else if((caract >= '0' && caract <= '9') || (caract == '-')){
             int resultat = 0;
+            bool negatif = false;
+            if(caract == '-'){
+                negatif = true;
+                caract = fgetc(fichier);
+            }
+            if(caract < '0' && caract > '9'){
+                AFFICHE_ERREUR_LEXIQUE(" apres un '-' on doit retrouver un nombre afin d'avoir un nombre negatif");
+                exit(-1);
+            }
             while(caract >= '0' && caract <= '9'){
                 resultat = resultat*10;
                 resultat += caract-'0';
                 caract = fgetc(fichier);
             }
+            if(negatif) resultat = -resultat;
             derniereMaille = ajoute_chaineLexical(&derniereMaille, LEX_NOMBRE, NULL, resultat, ligne);
         }
         //Saut de ligne
