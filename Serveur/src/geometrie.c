@@ -140,11 +140,6 @@ bool intersection_deux_lignes(Ligne ab, Ligne cd){
 //Retourne vrai si l'intersection entre le rectangle et la ligne est non vide
 bool intersection_rectangle_ligne(Rectangle abcd, Ligne pq){
     
-    //On verifie si on dans le cas où tous les points sont inclus dans le rectangle
-    Point r;
-    r.x = pq.a.x + 0.5*(pq.b.x-pq.a.x);
-    r.y = pq.a.y + 0.5*(pq.b.y-pq.a.y);
-    if(appartient_a_un_rectangle(abcd, r)) return true;
     Point c;
     c.x = abcd.d.x + abcd.b.x - abcd.a.x;
     c.y = abcd.d.y + abcd.b.y - abcd.a.y;
