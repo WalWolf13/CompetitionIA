@@ -1,0 +1,2 @@
+# Serveur  
+Vous retrouvez dans ce répertoire le serveur utilisé pour le concours I.A. Son port d’utilisation est le port 25566. Les cartes sont disponibles dans le répertoire : `data/map`. Afin de compiler le serveur, il suffit de faire la commande `make` et pour l’exécuter la commande `make start`. Si vous souhaitez changer de carte, modifier dans le fichier `Makefile`, la ligne `@./exe/serveur`en mettant la carte que vous souhaitez utiliser juste derrière.
